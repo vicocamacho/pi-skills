@@ -29,6 +29,13 @@ Parse `$ARGUMENTS` for a branch name or feature description.
 Keep the feature description for the final handoff. If the user provides only a
 branch name, ask for the development task before creating the worktree.
 
+Derive a separate, short workspace label from the feature description. Prefer a
+name that tells the user what the work is, using the descriptive words rather
+than a ticket identifier. Strip issue references such as `HELIX-123` even when
+they appear in the branch name. For example, `feature/HELIX-848-builder-scroll`
+should use `builder-scroll`, not `HELIX-848`. Use the ticket identifier only as
+a fallback when no meaningful description is available.
+
 ### 2. Choose the base branch
 
 Default to the repository's primary integration branch. Detect it:
@@ -112,7 +119,8 @@ worktree and launch Pi" flow. Pass these values to the Herdr integration:
 
 - Worktree path: the absolute path created in step 4
 - Worktree slug: the directory or branch slug
-- Session name: a short name derived from the slug
+- Workspace label: the meaningful label derived in step 1
+- Session name: a short name derived from the workspace label
 - Task instruction: the feature description collected in step 1
 - Focus: focus the new workspace after Herdr accepts the task
 
@@ -124,7 +132,7 @@ When the check fails, do not select another terminal host automatically. Report
 the command the user can run to open Pi in the prepared worktree:
 
 ```bash
-cd <absolute-path> && pi --name "<worktree-slug>"
+cd <absolute-path> && pi --name "<session-name>"
 ```
 
 ### 7. Report the handoff

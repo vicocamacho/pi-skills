@@ -1,16 +1,17 @@
 ---
 name: close-if-merged
 description: >
-  Check whether the current branch's GitHub PR has been merged and, if so,
-  clean up its isolated database and linked worktree, then close the dedicated
-  Herdr workspace. Use when the user says "check if this is merged", "close
-  this workspace if merged", "close this tab if merged", or "is the PR merged
-  yet?".
+  Check whether the current branch's GitHub PR has been merged or closed and,
+  if so, discard local checkout changes and artifacts, clean up its isolated
+  database and linked worktree, then close the dedicated Herdr workspace. Use
+  when the user says "check if this is merged", "close this workspace if done",
+  "close this tab if merged", or "is the PR finished?".
 ---
 
-# Close Workspace If PR Is Merged
+# Close Workspace If PR Is Finished
 
-Check the merge state of the PR for the current branch. If merged, remove the
+Check the state of the PR for the current branch. If it was merged or closed
+without merging, discard the worktree's local checkout state, remove its
 isolated database and linked worktree, then close the dedicated Herdr workspace
 containing all of its tabs and panes.
 
@@ -58,9 +59,22 @@ If no PR exists (`gh` exits non-zero or returns empty), report that and stop.
 
 ### 4. Evaluate the state
 
-- If `state` is not `MERGED`, report that the PR is still open or was closed
-  without merging, include the PR URL, and do nothing further.
-- If `state` is `MERGED`, proceed with cleanup.
+- If `state` is `OPEN`, report that the PR is still open, include the PR URL,
+  and do nothing further.
+- If `state` is `MERGED` or `CLOSED`, proceed with cleanup.
+- For any other state, report it and stop.
+
+Before stopping the server, record local checkout changes for the final report:
+
+```bash
+git -C <worktree-path> status --short
+```
+
+A GitHub `MERGED` or `CLOSED` state authorizes discarding modified tracked
+files, staged changes, untracked files, and ignored artifacts in this worktree.
+They must not block cleanup. This rule applies only after GitHub verifies that
+the PR is no longer open. Never discard local work for an open PR or when no PR
+exists.
 
 ### 5. Stop the worktree dev server
 
@@ -100,7 +114,16 @@ the port is not listening, continue normally.
 
 Run cleanup from the main checkout, not from inside the linked worktree.
 
-If `<main-checkout-root>/bin/dev-worktree` exists, use it with the absolute
+Discard the finished worktree's tracked changes and every untracked or ignored
+file before removal:
+
+```bash
+git -C <worktree-path> reset --hard HEAD
+git -C <worktree-path> clean -ffdx
+```
+
+If either command fails, report the failure and stop. If
+`<main-checkout-root>/bin/dev-worktree` exists, use it with the absolute
 worktree path so nested branch names and custom worktree directory names resolve
 correctly:
 
@@ -114,7 +137,34 @@ If `bin/dev-worktree` is absent, fall back to plain Git:
 git -C <main-checkout-root> worktree remove <worktree-path> --force
 ```
 
-If cleanup fails, report the failure and do not close the workspace.
+Do not treat the cleanup command's exit status alone as authoritative. Git can
+remove the worktree registration and tracked checkout, then return non-zero
+because ignored generated directories such as `tmp/` or `vendor/` remain.
+Inspect both the registration and filesystem path after the command finishes:
+
+```bash
+git -C <main-checkout-root> worktree list --porcelain
+test -e <worktree-path>
+```
+
+If the exact recorded path is still registered, report the failure and do not
+close the workspace. If it is no longer registered but the path remains, remove
+the residue only when the path is a directory rather than a symlink and it is
+below `<main-checkout-root>/.worktrees/` rather than the `.worktrees` directory
+itself:
+
+```bash
+rm -rf -- <worktree-path>
+test ! -e <worktree-path>
+```
+
+The verified `MERGED` or `CLOSED` state authorizes deleting residue even when
+the earlier status output listed local changes. This handles directory shells
+and artifacts left by a partially successful `git worktree remove`.
+
+Cleanup succeeds only when the exact path is absent from both
+`git worktree list --porcelain` and the filesystem. Otherwise report the
+remaining state and do not close the workspace.
 
 ### 7. Close the dedicated workspace
 
@@ -122,8 +172,9 @@ Closing the workspace terminates every tab and pane in it, including any dev
 server tab and the current Pi agent. Do not separately close server panes or
 individual tabs.
 
-Report the PR URL, merge timestamp, and successful worktree cleanup immediately
-before issuing the final command:
+Report the PR URL, final state, merge timestamp when present, any discarded
+local checkout changes, and successful worktree cleanup immediately before
+issuing the final command:
 
 ```bash
 herdr workspace close <workspace-id>

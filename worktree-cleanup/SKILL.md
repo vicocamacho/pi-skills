@@ -65,12 +65,12 @@ Branches whose PR was **closed without merging** are also cleanup candidates —
 the work was abandoned or superseded. Include them alongside merged worktrees
 when presenting options to the user.
 
-**CRITICAL — Check for uncommitted changes before proposing any deletion:**
+**Check local changes, but let a verified merged PR override them:**
 
 `git branch --merged` can flag a branch as merged even when the worktree
-contains uncommitted work — this happens when no commits have been pushed yet
-but the branch HEAD still points to a staging commit. A worktree with
-uncommitted or unstaged changes must **never** be proposed for cleanup.
+contains uncommitted work. This happens when no commits have been pushed and
+the branch HEAD still points to a staging commit. An ancestry check alone does
+not authorize deleting local work.
 
 For every candidate identified by `--merged` or a merged/closed PR, run:
 
@@ -78,18 +78,34 @@ For every candidate identified by `--merged` or a merged/closed PR, run:
 git -C .worktrees/<dir> status --short
 ```
 
-If the output is non-empty (any modified, untracked, or staged files), the
-worktree has local work. **Exclude it from the cleanup list** and note it
-separately as "has uncommitted changes — skipped".
+Apply these rules:
 
-For any worktree whose branch is merged or closed (by any method), use the project
-script to clean it up:
+- When GitHub reports the branch's PR state as `MERGED`, include the worktree
+  even when status lists modified, staged, or untracked files. Note that cleanup
+  will discard them. Ignored artifacts also do not block cleanup.
+- When only `git branch --merged` identifies the branch, exclude a dirty
+  worktree and report `has uncommitted changes; skipped`.
+- When GitHub reports a PR closed without merging, exclude a dirty worktree and
+  report the same reason. Do not discard abandoned local work automatically.
+
+Before removing a verified merged PR's dirty worktree, discard tracked changes
+and every untracked or ignored file:
+
+```bash
+git -C .worktrees/<dir> reset --hard HEAD
+git -C .worktrees/<dir> clean -ffdx
+```
+
+Then use the project script for any eligible worktree whose branch is merged or
+closed:
 
 ```bash
 bin/dev-worktree remove <branch-or-path>
 ```
 
-This handles everything: drops dev DB, test DB, parallel worker DBs, removes the worktree, and deletes the branch if merged. **Prefer this over manual cleanup whenever the worktree still exists.**
+This drops the development, test, and parallel worker databases, removes the
+worktree, and deletes the branch when Git considers it fully merged. Prefer it
+over manual cleanup whenever the worktree still exists.
 
 ### 2. Find fully orphaned databases
 
