@@ -14,8 +14,8 @@ the tab's default number, label its root pane, and open the browser at the app's
 URL.
 
 Never use `herdr pane split` for this skill. Never use a background or detached
-launch. Always create a focused tab in the caller's current Herdr workspace and
-run the server in that tab's root pane.
+launch. Create the tab in the caller's current Herdr workspace without changing
+the active tab or pane, then run the server in the new tab's root pane.
 
 ## Steps
 
@@ -50,7 +50,7 @@ herdr pane current --current
 Parse `result.pane.workspace_id`. If this fails, stop and tell the user the
 live test needs a Herdr terminal.
 
-### 3. Create and label a focused tab
+### 3. Create and label a tab without focusing it
 
 Build the tab and pane labels from the port, default tab number, and feature:
 
@@ -69,9 +69,10 @@ that number can be retained in the renamed label.
 ```bash
 herdr tab create \
   --workspace <workspace-id> \
-  --cwd <worktree-root> \
-  --focus
+  --cwd <worktree-root>
 ```
+
+Do not pass `--focus`. The caller must remain in their current tab and pane.
 
 Parse the tab ID from `result.tab.tab_id`, the default tab number from
 `result.tab.number`, and the server pane ID from `result.root_pane.pane_id`.

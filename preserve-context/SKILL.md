@@ -1,6 +1,7 @@
 ---
 name: preserve-context
 description: Preserve reasoning quality and task continuity during long sessions, multi-step work, large file or command output, repeated investigation, delegation, handoffs, or approaching context limits. Use before context becomes crowded or work changes hands.
+disable-model-invocation: true
 ---
 
 # Preserve context

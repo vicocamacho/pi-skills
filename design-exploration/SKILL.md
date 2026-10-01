@@ -1,6 +1,7 @@
 ---
 name: design-exploration
 description: Compare alternatives for a novel UI interaction or architectural decision when the repository has no established pattern and multiple materially different choices remain. Do not use for routine implementation, clear bug fixes, or constrained refactors.
+disable-model-invocation: true
 ---
 
 # Design exploration

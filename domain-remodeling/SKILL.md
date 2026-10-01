@@ -1,6 +1,7 @@
 ---
 name: domain-remodeling
 description: Reconsider a domain model when branches or shape assumptions repeat across files, persisted values must stay synchronized, ownership is unclear, or a defect demonstrates an invalid state. Do not use merely to make local code more abstract.
+disable-model-invocation: true
 ---
 
 # Domain remodeling

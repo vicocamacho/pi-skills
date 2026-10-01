@@ -1,6 +1,7 @@
 ---
 name: debug-root-cause
 description: Debug bugs, regressions, crashes, corrupt or stale state, and inconsistent behavior. Use when investigating a failure before proposing or applying a fix.
+disable-model-invocation: true
 ---
 
 # Debug root causes

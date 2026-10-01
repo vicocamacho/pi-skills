@@ -1,6 +1,7 @@
 ---
 name: reliable-operations
 description: Design or change jobs, webhooks, callbacks, retries, duplicate delivery handling, lifecycle commands, locks, counters, schedulers, or concurrent writes. Use when an operation may run twice, resume after failure, or share mutable state.
+disable-model-invocation: true
 ---
 
 # Reliable operations

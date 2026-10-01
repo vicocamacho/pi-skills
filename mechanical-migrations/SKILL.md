@@ -1,6 +1,7 @@
 ---
 name: mechanical-migrations
 description: Handle repetitive or high-risk changes across many files, records, schemas, or callers. Use for codemods, bulk edits, data migrations, and coordinated internal API replacement. Do not use for a few obvious edits.
+disable-model-invocation: true
 ---
 
 # Mechanical migrations
