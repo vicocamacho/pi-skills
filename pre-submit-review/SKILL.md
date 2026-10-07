@@ -103,11 +103,16 @@ if (!Number.isSafeInteger(args.pass) || args.pass < 1 ||
     typeof args.reviewPacket !== "string" || !args.reviewPacket.trim()) {
   throw new Error("A positive pass number and a complete review packet are required.");
 }
+const adversarialRequirements = `
+Every finding must include CONTRACT and CHANGE LINK fields. CONTRACT cites the authoritative requirement or existing contract affected, with source references. CHANGE LINK identifies the specific added, changed, or removed code and explains how it causes the reachable consequence or scoped requirement conflict. For defects, compare the relevant merge-base behavior with the candidate to prove the failure is introduced or made materially reachable or worse. For DISCUSSION, cite the conflicting requirements or contracts rather than inventing a failure.
+Regressions in unchanged callers of changed code count. Unchanged legacy defects with no causal link to the diff do not. Missing optional functionality is not a defect; missing behavior must be required by the task, an authoritative repository rule, or a contract the change must preserve. Reject claims without causal evidence, and do not invent requirements from possible enhancements or preferences.
+`;
 const results = await runs.all(lanes.filter(lane => selected.includes(lane.key)).map(lane => ({
   key: "pass-" + args.pass + "-" + lane.key,
   label: lane.label,
   agent: lane.agent,
-  task: "Apply your built-in runbook to this exact proposed PR scope. Do not edit.\n\n" + args.reviewPacket,
+  task: "Apply your built-in runbook to this exact proposed PR scope. Do not edit.\n\n" +
+    args.reviewPacket + (lane.key === "adversarial" ? "\n\n" + adversarialRequirements : ""),
   context: "fresh",
   worktree: false,
   output: "reviews/pass-" + args.pass + "-" + lane.key + ".md"
@@ -132,7 +137,7 @@ After every selected reviewer completes:
 
 1. Recheck `HEAD`, status, tracked changed paths, tracked diff SHA-256, untracked paths, and every untracked SHA-256 against the packet. A mismatch invalidates the pass.
 2. Read every report and verify its scope. A failed child, `REVIEW BLOCKED`, malformed report, missing output, or missing evidence blocks submission. A launch receipt is not a completed review.
-3. Deduplicate findings about the same mechanism across reports, preserving each source and any distinct consequence. Verify cited paths, symbols, callers, contracts, and repository patterns directly.
+3. Deduplicate findings about the same mechanism across reports, preserving each source and any distinct consequence. Verify cited paths, symbols, callers, contracts, and repository patterns directly. For adversarial findings, require the `CONTRACT` and `CHANGE LINK` fields specified in the launch task. Missing fields make the report malformed; evaluate supplied evidence against the actual merge-base and candidate behavior before accepting a finding. An unsupported claim is speculative or out of scope, not an instruction to expand the implementation.
 4. Classify each finding as:
    - `accepted blocker`: supported by current source and within the PR scope;
    - `accepted suggestion`: supported but not required for this PR;
