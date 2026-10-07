@@ -9,6 +9,8 @@ disable-model-invocation: true
 
 Run the fresh comment reviewer. Act on accepted findings.
 
+For the complete pre-PR gate, use [Pre-submit review](../pre-submit-review/SKILL.md). It owns the comment-reviewer launch and calls this skill's disposition rules afterward. Do not run an additional standalone comment pass for the same candidate.
+
 Authoring agents defend comments. Defer to the independent reviewer's fresh perspective.
 
 ## Scope

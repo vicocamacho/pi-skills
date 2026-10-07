@@ -42,8 +42,13 @@ Prepare a primary isolated worktree with the `worktree-start` skill, then start 
      long test or log output — to scout or researcher subagents that return
      bounded findings with evidence. Keep raw exploration output out of this
      session so its context stays small.
-   - Before PR submission, always run a fresh-context subagent review of the
-     final diff and address or explicitly resolve its findings.
+   - Before PR submission, load and run the `pre-submit-review` skill. It owns
+     the complete gate: four parallel specialist reviews, resolution of their
+     findings, then a fresh adversarial review of the integrated result. Do not
+     launch an extra generic reviewer or separate comment-reviewer pass. Follow
+     its rerun rules after fixes and record the gate evidence in HANDOFF-STATE.md.
+     `challenge-review` is separate existing-PR feedback adjudication, not part
+     of this pre-PR gate.
    - Do not permit nested fanout. Keep task interpretation, integration, final
      acceptance, PR submission, and publication decisions in this session.
 
@@ -94,7 +99,7 @@ Prepare a primary isolated worktree with the `worktree-start` skill, then start 
 - Use Linear's exact branch name for a resolved ticket.
 - Do not derive branch or workspace names from the appended completion requirements.
 - Preserve all setup and cleanup safety rules from `worktree-start`.
-- Every handed-off implementation must use at least one subagent and include a fresh-context final diff review launched by the handoff agent.
+- Every handed-off implementation must pass [Pre-submit review](../pre-submit-review/SKILL.md) before PR submission. That skill owns all five read-only reviewers and their reruns; do not add duplicate review launches. `challenge-review` does not satisfy this gate.
 - The handoff agent keeps its own context lean: bulky exploration belongs in subagents.
 - `HANDOFF-STATE.md` is mandatory, lives at the worktree root, must be excluded from git via `info/exclude`, and must never appear in the PR diff.
 - Rollover requires an observed automatic compaction event under the task's authorization or an explicit user request to transfer primary ownership. Record that trigger before creating the replacement agent. Task size, output volume, elapsed time, and lane failures are not triggers.

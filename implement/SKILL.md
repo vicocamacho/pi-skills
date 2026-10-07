@@ -64,8 +64,8 @@ A principle counts as used only when it changes a concrete decision. Do not clai
 4. Add or update any remaining behavior-focused tests through the lowest stable interface that proves the result.
 5. Run the relevant focused checks, then every repository-required validation before delivery.
 6. Inspect the final diff and exercise the real feature or failure path when the environment permits it.
-7. Read [No comments](../no-comments/SKILL.md) and run its fresh comment-reviewer pass over the final diff. Apply its accepted findings, then rerun the repository-required validation when the pass changed code.
-8. Follow any delivery requirements supplied with the command, including pull-request submission and live testing.
+7. When delivery includes creating or updating a PR, read [Pre-submit review](../pre-submit-review/SKILL.md) and run its complete gate: four parallel specialists, resolve findings, then a fresh adversarial review. It owns comment review too; do not launch a separate [No comments](../no-comments/SKILL.md) pass or generic reviewer. For an implementation without PR delivery, read No comments and run its standalone comment-reviewer pass. After review fixes, rerun affected validation and follow the gate's review-rerun rules before delivery.
+8. Follow the supplied delivery requirements, including PR submission and live testing. For PR delivery, any repository-file change during final validation or PR preparation requires the pre-submit gate's affected specialist reruns and a new final adversarial pass before pushing. [Challenge review](../challenge-review/SKILL.md) separately adjudicates feedback on an existing PR when requested; it does not satisfy the pre-PR gate.
 
 ## Report
 
